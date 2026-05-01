@@ -1,0 +1,56 @@
+[
+  {
+    "id": "1",
+    "name": "初次上路",
+    "description": "完成注册",
+    "icon": "🚀",
+    "category": "beginner",
+    "points": 50,
+    "condition": "register"
+  },
+  {
+    "id": "2",
+    "name": "简历达人",
+    "description": "上传并分析简历",
+    "icon": "📝",
+    "category": "resume",
+    "points": 100,
+    "condition": "analyze_resume"
+  },
+  {
+    "id": "3",
+    "name": "目标猎手",
+    "description": "确认目标岗位",
+    "icon": "🎯",
+    "category": "target",
+    "points": 150,
+    "condition": "confirm_target"
+  },
+  {
+    "id": "4",
+    "name": "学习先锋",
+    "description": "完成首个技能学习",
+    "icon": "📚",
+    "category": "learning",
+    "points": 300,
+    "condition": "complete_skill"
+  },
+  {
+    "id": "5",
+    "name": "社区达人",
+    "description": "发布帖子被点赞",
+    "icon": "🤝",
+    "category": "community",
+    "points": 200,
+    "condition": "post_liked"
+  },
+  {
+    "id": "6",
+    "name": "求职高手",
+    "description": "获得多个岗位匹配",
+    "icon": "💎",
+    "category": "master",
+    "points": 500,
+    "condition": "multiple_matches"
+  }
+]

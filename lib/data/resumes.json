@@ -1,0 +1,88 @@
+[
+  {
+    "id": "4fo9wem9f88bxvftu1f6kj",
+    "userId": "anonymous",
+    "rawText": "我叫张三，有3年前端开发经验。熟练使用 React、Vue、TypeScript。熟悉 Node.js 开发。掌握 Git、Docker 容器化部署。熟悉 PostgreSQL 数据库操作。",
+    "parsedData": {
+      "skills": [
+        "TypeScript",
+        "React",
+        "Vue",
+        "Node.js",
+        "SQL",
+        "PostgreSQL",
+        "Git",
+        "Docker"
+      ],
+      "education": [],
+      "experience": [],
+      "projects": []
+    },
+    "analysisReport": {
+      "strengths": [
+        "前端框架经验",
+        "TypeScript 掌握",
+        "Node.js 后端开发",
+        "云原生部署经验",
+        "版本控制熟练",
+        "数据库操作能力"
+      ],
+      "weaknesses": [
+        "算法能力待提升",
+        "性能优化经验不足",
+        "安全编程意识需加强"
+      ],
+      "matchScores": {
+        "前端工程师": 87,
+        "全栈工程师": 95,
+        "React 开发工程师": 60
+      },
+      "suggestions": [
+        "建议加强 算法能力待提升",
+        "针对前端工程师岗位匹配度高，可继续深入学习 React",
+        "完成简历分析后，前往岗位推荐页面查看匹配岗位"
+      ]
+    },
+    "createdAt": "2026-04-30T04:57:12.544Z",
+    "updatedAt": "2026-04-30T04:57:12.545Z"
+  },
+  {
+    "id": "7y05sacumxjq9kmxvp73v9",
+    "userId": "anonymous",
+    "rawText": "React开发经验三年，熟练使用TypeScript和Node.js",
+    "parsedData": {
+      "skills": [
+        "TypeScript",
+        "React",
+        "Node.js"
+      ],
+      "education": [],
+      "experience": [],
+      "projects": []
+    },
+    "analysisReport": {
+      "strengths": [
+        "前端框架经验",
+        "TypeScript 掌握",
+        "Node.js 后端开发"
+      ],
+      "weaknesses": [
+        "缺少云部署经验",
+        "算法能力待提升",
+        "性能优化经验不足"
+      ],
+      "matchScores": {
+        "前端工程师": 70,
+        "全栈工程师": 20,
+        "React 开发工程师": 60
+      },
+      "suggestions": [
+        "建议加强 云部署经验",
+        "建议补充更多技术栈描述，丰富简历内容",
+        "完成简历分析后，前往岗位推荐页面查看匹配岗位"
+      ]
+    },
+    "createdAt": "2026-04-30T05:05:55.419Z",
+    "updatedAt": "2026-04-30T05:05:55.420Z"
+  }
+]

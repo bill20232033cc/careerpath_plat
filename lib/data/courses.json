@@ -1,0 +1,32 @@
+[
+  {
+    "id": "1",
+    "title": "React 官方教程",
+    "platform": "React 官网",
+    "url": "https://react.dev",
+    "duration": "8 小时",
+    "skills": ["React"],
+    "level": "beginner",
+    "description": "官方出品的 React 入门教程"
+  },
+  {
+    "id": "2",
+    "title": "TypeScript 进阶",
+    "platform": "慕课网",
+    "url": "https://imooc.com",
+    "duration": "15 小时",
+    "skills": ["TypeScript"],
+    "level": "intermediate",
+    "description": "深入理解 TypeScript 类型系统"
+  },
+  {
+    "id": "3",
+    "title": "Node.js 全栈开发",
+    "platform": "极客时间",
+    "url": "https://geekbang.com",
+    "duration": "20 小时",
+    "skills": ["Node.js", "Express"],
+    "level": "intermediate",
+    "description": "从入门到实战，掌握后端开发"
+  }
+]

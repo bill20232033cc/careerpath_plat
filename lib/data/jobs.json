@@ -1,0 +1,50 @@
+[
+  {
+    "id": "1",
+    "title": "前端工程师",
+    "company": "字节跳动",
+    "location": "北京",
+    "salary": "25K-40K",
+    "experience": "3-5年",
+    "education": "本科",
+    "jobType": "full-time",
+    "source": "boss",
+    "description": "负责公司核心产品的前端开发工作",
+    "requirements": ["React", "TypeScript", "Node.js"],
+    "skills": ["React", "TypeScript", "Node.js", "Git", "CSS", "HTML"],
+    "benefits": ["六险一金", "免费三餐", "弹性工作"],
+    "postedAt": "2026-04-28"
+  },
+  {
+    "id": "2",
+    "title": "全栈工程师",
+    "company": "腾讯",
+    "location": "深圳",
+    "salary": "30K-50K",
+    "experience": "5-10年",
+    "education": "本科",
+    "jobType": "full-time",
+    "source": "lagou",
+    "description": "参与公司云服务产品开发",
+    "requirements": ["Vue/React", "Python/Go", "数据库"],
+    "skills": ["Vue", "Python", "PostgreSQL", "Docker", "K8s"],
+    "benefits": ["股票期权", "年度旅游", "带薪年假"],
+    "postedAt": "2026-04-27"
+  },
+  {
+    "id": "3",
+    "title": "React 开发工程师",
+    "company": "阿里巴巴",
+    "location": "杭州",
+    "salary": "35K-55K",
+    "experience": "3-5年",
+    "education": "本科",
+    "jobType": "full-time",
+    "source": "zhilian",
+    "description": "参与电商平台前端架构设计与开发",
+    "requirements": ["React", "Redux", "性能优化"],
+    "skills": ["React", "Redux", "TypeScript", "Webpack", "性能优化"],
+    "benefits": ["股票期权", "免费班车", "年度体检"],
+    "postedAt": "2026-04-26"
+  }
+]

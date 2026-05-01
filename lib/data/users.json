@@ -1,0 +1,22 @@
+[
+  {
+    "id": "xnbeokxdmb3amjofvs51",
+    "email": "632217862@qq.com",
+    "password": "$2a$10$uJpIkNis.x1vzfai21TgQ.LSX3MP7.CZDFFRHIbRAzyMyRZ52dxuu",
+    "username": "zxc",
+    "points": 50,
+    "level": 1,
+    "createdAt": "2026-04-30T04:51:03.968Z",
+    "updatedAt": "2026-04-30T04:51:03.968Z"
+  },
+  {
+    "id": "80st8dzcbvff4quu49b9j7",
+    "email": "test@example.com",
+    "password": "$2a$10$.4LMoD1q6Q1FbJzW/DqBPORTJWnC7UlZQa6wcp6AQSJmtIMnabvFS",
+    "username": "testuser",
+    "points": 50,
+    "level": 1,
+    "createdAt": "2026-04-30T04:54:05.387Z",
+    "updatedAt": "2026-04-30T04:54:05.387Z"
+  }
+]
