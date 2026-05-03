@@ -18,5 +18,15 @@
     "level": 1,
     "createdAt": "2026-04-30T04:54:05.387Z",
     "updatedAt": "2026-04-30T04:54:05.387Z"
+  },
+  {
+    "id": "esrnghnrihzm6i095qfj",
+    "email": "test@test.com",
+    "password": "$2a$10$oK/noY09qvrvew9UyOOy3.ebX7YKabxy/9PKTDB8oTEeNvj6QLOkC",
+    "username": "test",
+    "points": 50,
+    "level": 1,
+    "createdAt": "2026-05-03T18:58:22.158Z",
+    "updatedAt": "2026-05-03T18:58:22.158Z"
   }
 ]

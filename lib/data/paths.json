@@ -1,0 +1,52 @@
+[
+  {
+    "id": "path-1",
+    "jobId": "1",
+    "userId": "",
+    "status": "in-progress",
+    "skillNodes": [
+      {
+        "id": "1",
+        "name": "HTML/CSS 基础",
+        "description": "掌握网页结构与样式设计基础",
+        "asciiArt": "",
+        "level": "beginner",
+        "estimatedHours": 20,
+        "resources": [
+          { "id": "r1", "title": "MDN Web Docs", "url": "#", "type": "doc" },
+          { "id": "r2", "title": "Flexbox 教程", "url": "#", "type": "course" }
+        ],
+        "status": "completed",
+        "completedAt": "2026-04-01T00:00:00Z"
+      },
+      {
+        "id": "2",
+        "name": "JavaScript 核心",
+        "description": "深入理解 JavaScript 语言核心概念",
+        "asciiArt": "",
+        "level": "intermediate",
+        "estimatedHours": 40,
+        "resources": [
+          { "id": "r3", "title": "JavaScript 高级程序设计", "url": "#", "type": "doc" },
+          { "id": "r4", "title": "ES6+ 教程", "url": "#", "type": "course" }
+        ],
+        "status": "current"
+      },
+      {
+        "id": "3",
+        "name": "React 框架",
+        "description": "学习 React 组件化开发思想",
+        "asciiArt": "",
+        "level": "intermediate",
+        "estimatedHours": 50,
+        "resources": [
+          { "id": "r5", "title": "React 官方文档", "url": "#", "type": "doc" },
+          { "id": "r6", "title": "React 实战课程", "url": "#", "type": "course" }
+        ],
+        "status": "locked"
+      }
+    ],
+    "createdAt": "2026-04-01T00:00:00Z",
+    "updatedAt": "2026-04-01T00:00:00Z"
+  }
+]

@@ -1,73 +1,81 @@
 'use client';
 
-import { useState } from 'react';
-import { ArrowLeft, Plus, Search, MessageSquare, TrendingUp } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ArrowLeft, Plus, Search, MessageSquare, TrendingUp, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PostCard } from '@/components/community/PostCard';
 import { Post } from '@/lib/types';
-
-const SAMPLE_POSTS: Post[] = [
-  {
-    id: '1',
-    userId: 'user123',
-    type: 'experience',
-    title: '我的秋招经验分享 - 从简历到offer',
-    content: '作为一名 985 硕士，秋招收到了字节、腾讯、阿里的offer，今天来分享一些经验... 首先简历非常重要，要突出项目亮点和量化成果。其次是算法，建议提前三个月开始刷题...',
-    likes: 128,
-    comments: [
-      { id: 'c1', userId: 'user456', content: '感谢分享！请问算法刷了多久？', createdAt: '2026-04-28' },
-    ],
-    tags: ['求职', '秋招', '经验分享'],
-    createdAt: '2026-04-29',
-    updatedAt: '2026-04-29',
-  },
-  {
-    id: '2',
-    userId: 'user789',
-    type: 'question',
-    title: '前端简历怎么写更有竞争力？',
-    content: '感觉自己简历写得一般，投了很多简历都没面试机会... 目前有1年React经验，做过2个项目，想问问大家的简历是怎么突出亮点的？',
-    likes: 45,
-    comments: [
-      { id: 'c2', userId: 'user101', content: '可以看看我的简历模板', createdAt: '2026-04-27' },
-      { id: 'c3', userId: 'user202', content: '建议突出项目规模和影响', createdAt: '2026-04-27' },
-    ],
-    tags: ['简历', '前端', '求职指导'],
-    createdAt: '2026-04-28',
-    updatedAt: '2026-04-28',
-  },
-  {
-    id: '3',
-    userId: 'user555',
-    type: 'share',
-    title: '分享一个超实用的前端学习路线图',
-    content: '整理了一份前端学习路线图，从 HTML/CSS 到 React 全家桶，适合零基础入门到进阶。包含免费资源推荐和实战项目建议...',
-    likes: 256,
-    comments: [],
-    tags: ['学习路线', '前端', '资源分享'],
-    createdAt: '2026-04-27',
-    updatedAt: '2026-04-27',
-  },
-  {
-    id: '4',
-    userId: 'user888',
-    type: 'referral',
-    title: '字节跳动前端急招！内推通道开启',
-    content: '我们组急招前端工程师，base 北京，要求：3年以上经验，熟练 React，技术栈 Vue/React 都可以。有兴趣的可以私信我简历，优先处理内推！',
-    likes: 89,
-    comments: [],
-    tags: ['内推', '字节跳动', '前端'],
-    createdAt: '2026-04-26',
-    updatedAt: '2026-04-26',
-  },
-];
+import { sanitizeHtml } from '@/lib/utils';
 
 export default function CommunityPage() {
-  const [posts, setPosts] = useState<Post[]>(SAMPLE_POSTS);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeTab, setActiveTab] = useState<'latest' | 'hot'>('latest');
+
+  useEffect(() => {
+    fetchPosts();
+  }, []);
+
+  const fetchPosts = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch('/api/community/posts');
+      const result = await res.json();
+      if (result.success && result.data?.posts) {
+        setPosts(result.data.posts);
+      }
+    } catch (error) {
+      console.error('[获取帖子失败]', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLike = async (postId: string) => {
+    try {
+      const res = await fetch(`/api/community/posts/${postId}/like`, {
+        method: 'POST',
+      });
+      const result = await res.json();
+      if (result.success) {
+        setPosts(
+          posts.map((post) =>
+            post.id === postId ? { ...post, likes: result.data.likes } : post
+          )
+        );
+      }
+    } catch (error) {
+      console.error('[点赞失败]', error);
+    }
+  };
+
+  const handleComment = async (postId: string, content: string) => {
+    try {
+      const userId = localStorage.getItem('userId') || 'anonymous';
+      const res = await fetch(`/api/community/posts/${postId}/comment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, content }),
+      });
+      const result = await res.json();
+      if (result.success) {
+        setPosts(
+          posts.map((post) =>
+            post.id === postId
+              ? { ...post, comments: [...post.comments, result.data.comment] }
+              : post
+          )
+        );
+      }
+    } catch (error) {
+      console.error('[评论失败]', error);
+    }
+  };
+
+  const sanitizedSearchTerm = sanitizeHtml(searchTerm);
 
   const filteredPosts = posts
     .filter(
@@ -82,14 +90,6 @@ export default function CommunityPage() {
       }
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
-
-  const handleLike = (postId: string) => {
-    setPosts(
-      posts.map((post) =>
-        post.id === postId ? { ...post, likes: post.likes + 1 } : post
-      )
-    );
-  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -116,7 +116,7 @@ export default function CommunityPage() {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <Input
                 placeholder="搜索帖子..."
-                value={searchTerm}
+                value={sanitizedSearchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-12"
               />
@@ -149,21 +149,31 @@ export default function CommunityPage() {
           </div>
         </div>
 
-        <div className="space-y-4">
-          {filteredPosts.map((post) => (
-            <PostCard
-              key={post.id}
-              post={post}
-              onLike={() => handleLike(post.id)}
-            />
-          ))}
-        </div>
-
-        {filteredPosts.length === 0 && (
-          <div className="text-center py-12 text-gray-500">
-            <p className="text-lg mb-2">暂无相关帖子</p>
-            <p className="text-sm">成为第一个发布的人！</p>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+            <span className="ml-2 text-gray-600">加载中...</span>
           </div>
+        ) : (
+          <>
+            <div className="space-y-4">
+              {filteredPosts.map((post) => (
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  onLike={() => handleLike(post.id)}
+                  onComment={(content) => handleComment(post.id, content)}
+                />
+              ))}
+            </div>
+
+            {filteredPosts.length === 0 && (
+              <div className="text-center py-12 text-gray-500">
+                <p className="text-lg mb-2">暂无相关帖子</p>
+                <p className="text-sm">成为第一个发布的人！</p>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

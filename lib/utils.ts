@@ -1,5 +1,7 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { NextResponse } from 'next/server';
+import { ApiResponse, ApiError } from './types';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -37,4 +39,34 @@ export function calculateMatchScore(
     )
   );
   return Math.round((matchedSkills.length / jobSkills.length) * 100);
+}
+
+export function apiSuccess<T>(data: T, status = 200): NextResponse<ApiResponse<T>> {
+  return NextResponse.json({ success: true, data }, { status });
+}
+
+export function apiError(code: string, message: string, status = 400): NextResponse<ApiResponse<never>> {
+  return NextResponse.json({ success: false, error: { code, message } }, { status });
+}
+
+export function apiPaginated<T>(
+  data: T[],
+  page: number,
+  limit: number,
+  total: number
+): NextResponse<ApiResponse<T[]>> {
+  return NextResponse.json({
+    success: true,
+    data,
+    pagination: { page, limit, total },
+  });
+}
+
+export function sanitizeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
 }

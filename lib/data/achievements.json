@@ -6,7 +6,7 @@
     "icon": "🚀",
     "category": "beginner",
     "points": 50,
-    "condition": "register"
+    "condition": { "type": "register", "count": 1 }
   },
   {
     "id": "2",
@@ -15,7 +15,7 @@
     "icon": "📝",
     "category": "resume",
     "points": 100,
-    "condition": "analyze_resume"
+    "condition": { "type": "analyze_resume", "count": 1 }
   },
   {
     "id": "3",
@@ -24,7 +24,7 @@
     "icon": "🎯",
     "category": "target",
     "points": 150,
-    "condition": "confirm_target"
+    "condition": { "type": "confirm_target", "count": 1 }
   },
   {
     "id": "4",
@@ -33,7 +33,7 @@
     "icon": "📚",
     "category": "learning",
     "points": 300,
-    "condition": "complete_skill"
+    "condition": { "type": "complete_skill", "count": 1 }
   },
   {
     "id": "5",
@@ -42,7 +42,7 @@
     "icon": "🤝",
     "category": "community",
     "points": 200,
-    "condition": "post_liked"
+    "condition": { "type": "post_liked", "count": 1 }
   },
   {
     "id": "6",
@@ -51,6 +51,6 @@
     "icon": "💎",
     "category": "master",
     "points": 500,
-    "condition": "multiple_matches"
+    "condition": { "type": "multiple_matches", "count": 3 }
   }
 ]

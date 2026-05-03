@@ -1,6 +1,38 @@
-import { NextResponse } from 'next/server';
-import { readData } from '@/lib/data';
+export const dynamic = 'force-dynamic';
+
+import { readData, writeData } from '@/lib/data';
 import { Job } from '@/lib/types';
+import { apiSuccess, apiError } from '@/lib/utils';
+import { scrapeJobs, scrapedToJob } from '@/lib/scraper';
+
+const CACHE_TTL = 30 * 60 * 1000; // 30 minutes
+let cachedJobs: Job[] | null = null;
+let lastFetch = 0;
+
+async function getJobsWithRefresh(): Promise<Job[]> {
+  const now = Date.now()
+  const localJobs = readData<Job>('jobs')
+
+  if (cachedJobs && now - lastFetch < CACHE_TTL) {
+    return [...localJobs, ...cachedJobs]
+  }
+
+  try {
+    const scraped = await scrapeJobs()
+    if (scraped.length > 0) {
+      cachedJobs = scraped.map((s, i) => scrapedToJob(s, `scraped-${i}-${Date.now()}`))
+      lastFetch = now
+
+      await writeData('jobs_scraped', cachedJobs)
+      return [...localJobs, ...cachedJobs]
+    }
+  } catch (e) {
+    console.error('[抓取岗位失败，使用缓存]', e)
+  }
+
+  const scraped = readData<Job>('jobs_scraped')
+  return [...localJobs, ...scraped]
+}
 
 export async function GET(request: Request) {
   try {
@@ -8,8 +40,14 @@ export async function GET(request: Request) {
     const query = searchParams.get('q') || '';
     const source = searchParams.get('source');
     const jobType = searchParams.get('type');
+    const refresh = searchParams.get('refresh');
 
-    let jobs = readData<Job>('jobs');
+    if (refresh === 'true') {
+      cachedJobs = null
+      lastFetch = 0
+    }
+
+    let jobs = await getJobsWithRefresh();
 
     if (query) {
       const lowerQuery = query.toLowerCase();
@@ -30,13 +68,9 @@ export async function GET(request: Request) {
       jobs = jobs.filter((job) => job.jobType === jobType);
     }
 
-    return NextResponse.json({
-      success: true,
-      total: jobs.length,
-      jobs,
-    });
+    return apiSuccess(jobs);
   } catch (error) {
     console.error('Jobs fetch error:', error);
-    return NextResponse.json({ error: '获取岗位列表失败' }, { status: 500 });
+    return apiError('JOB002', '获取岗位列表失败', 500);
   }
 }

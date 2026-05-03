@@ -4,30 +4,36 @@ import { useState } from 'react';
 import { ArrowLeft, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { ResumeUpload } from '@/components/resume/ResumeUpload';
-import { AnalysisReport } from '@/components/resume/AnalysisReport';
+import { ResumePreview } from '@/components/resume/ResumePreview';
+import { StrengthCard } from '@/components/resume/StrengthCard';
+import { WeaknessCard } from '@/components/resume/WeaknessCard';
 import { AnalysisReport as AnalysisReportType } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 
 export default function ResumePage() {
   const [analysisResult, setAnalysisResult] = useState<AnalysisReportType | null>(null);
+  const [resumeText, setResumeText] = useState<string>('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const handleAnalyze = async (text: string) => {
     setIsAnalyzing(true);
+    setResumeText(text);
 
     try {
       const res = await fetch('/api/resume', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ resumeText: text }),
+        body: JSON.stringify({ text }),
       });
 
       const data = await res.json();
 
-      if (res.ok && data.report) {
-        setAnalysisResult(data.report);
+      if (res.ok && data.success && data.data?.analysis) {
+        setAnalysisResult(data.data.analysis);
+      } else if (!res.ok && data.error?.message) {
+        alert(data.error.message);
       } else {
-        alert(data.error || '分析失败，请重试');
+        alert('分析失败，请重试');
       }
     } catch (error) {
       console.error('Analysis error:', error);
@@ -39,6 +45,7 @@ export default function ResumePage() {
 
   const handleReset = () => {
     setAnalysisResult(null);
+    setResumeText('');
   };
 
   return (
@@ -52,7 +59,7 @@ export default function ResumePage() {
           </Link>
           <div>
             <h1 className="text-3xl font-bold text-gray-900">简历分析</h1>
-            <p className="text-gray-600">上传简历，获取 AI 智能分析</p>
+            <p className="text-gray-600">粘贴简历内容，获取 AI 智能分析</p>
           </div>
         </div>
 
@@ -68,7 +75,37 @@ export default function ResumePage() {
               </p>
             </div>
 
-            <AnalysisReport report={analysisResult} />
+            {resumeText && (
+              <div className="mb-6">
+                <ResumePreview content={resumeText} />
+              </div>
+            )}
+
+            <div className="space-y-6">
+              <div className="bg-white rounded-xl p-6 border">
+                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-green-600" />
+                  核心竞争力
+                </h2>
+                <div className="space-y-3">
+                  {analysisResult.strengths.map((item, i) => (
+                    <StrengthCard key={i} strength={item} />
+                  ))}
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl p-6 border">
+                <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-amber-600" />
+                  待提升领域
+                </h2>
+                <div className="space-y-3">
+                  {analysisResult.weaknesses.map((item, i) => (
+                    <WeaknessCard key={i} weakness={item} />
+                  ))}
+                </div>
+              </div>
+            </div>
 
             <div className="mt-6 flex gap-4">
               <Button onClick={handleReset} variant="outline" className="flex-1">
@@ -83,7 +120,7 @@ export default function ResumePage() {
           </div>
         ) : (
           <div className="bg-white rounded-xl p-6 border">
-            <h2 className="text-lg font-semibold mb-4">上传你的简历</h2>
+            <h2 className="text-lg font-semibold mb-4">粘贴你的简历</h2>
             <ResumeUpload onUpload={handleAnalyze} />
             {isAnalyzing && (
               <div className="mt-4 text-center text-gray-500">

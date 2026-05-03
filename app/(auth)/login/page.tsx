@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,18 +17,15 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
+    const result = await signIn('credentials', {
+      email,
+      password,
+      redirect: false,
     });
-
-    if (res.ok) {
+    if (result?.ok) {
       router.push('/dashboard');
     } else {
-      const data = await res.json();
-      setError(data.error || '登录失败');
+      setError('邮箱或密码错误');
     }
   };
 

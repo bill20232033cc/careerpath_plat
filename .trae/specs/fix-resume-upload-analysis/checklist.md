@@ -1,0 +1,8 @@
+- [x] 点击上传区域能正确弹出文件选择框
+- [x] 拖拽文件到上传区能正确读取并显示内容
+- [x] textarea 输入方式支持超过 5000 字符不被截断
+- [x] 前端发送的 JSON 字段名为 `text`，后端能正确解析
+- [x] API 返回数据结构符合 AnalysisReport 类型（strengths, weaknesses, matchScores, suggestions）
+- [x] 分析按钮点击后正确显示 loading 状态
+- [x] API 报错时前端给出友好提示，不直接弹出 "分析失败，请重试"
+- [x] 支持 .txt, .md 文件上传，.pdf/.doc/.docx 给出友好提示引导粘贴

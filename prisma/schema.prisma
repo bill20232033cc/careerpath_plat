@@ -1,0 +1,164 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        String   @id
+  username  String
+  email     String   @unique
+  password  String
+  avatar    String?
+  title     String?
+  bio       String?
+  points    Int      @default(0)
+  level     Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  achievements UserAchievement[]
+  learningProgress LearningProgress[]
+  posts        Post[]
+  resumes      Resume[]
+}
+
+model Resume {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  rawText        String
+  parsedData     String
+  analysisReport String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Job {
+  id          String   @id
+  title       String
+  company     String
+  companyLogo String?
+  location    String
+  salary      String
+  experience  String
+  education   String
+  jobType     String
+  source      String
+  description String
+  requirements String
+  skills      String
+  benefits    String
+  postedAt    String
+  matchScore  Int?
+  createdAt   DateTime @default(now())
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  type      String
+  title     String
+  content   String
+  likes     Int      @default(0)
+  tags      String
+  comments  Comment[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  userId    String
+  content   String
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model Achievement {
+  id          String @id
+  name        String
+  description String
+  icon        String
+  category    String
+  points      Int
+  condition   String
+
+  userAchievements UserAchievement[]
+}
+
+model UserAchievement {
+  id            String      @id @default(cuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id])
+  achievementId String
+  achievement   Achievement @relation(fields: [achievementId], references: [id])
+  unlockedAt    DateTime    @default(now())
+
+  @@unique([userId, achievementId])
+}
+
+model Course {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  platform    String
+  duration    String
+  level       String
+  skills      String
+  url         String
+  thumbnail   String?
+  rating      Float?
+  createdAt   DateTime @default(now())
+}
+
+model LearningProgress {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  courseId  String
+  progress  Int
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, courseId])
+}
+
+model LearningPath {
+  id        String   @id @default(cuid())
+  jobId     String
+  userId    String?
+  status    String   @default("in-progress")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  skillNodes SkillNode[]
+}
+
+model SkillNode {
+  id             String       @id @default(cuid())
+  pathId         String
+  path           LearningPath @relation(fields: [pathId], references: [id], onDelete: Cascade)
+  name           String
+  description    String
+  asciiArt       String?
+  level          String
+  estimatedHours Int
+  status         String       @default("locked")
+  completedAt    DateTime?
+  order          Int          @default(0)
+
+  resources Resource[]
+}
+
+model Resource {
+  id     String     @id @default(cuid())
+  nodeId String
+  node   SkillNode  @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  title  String
+  url    String
+  type   String
+}

@@ -1,14 +1,16 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { ArrowLeft, Sparkles, Loader2 } from 'lucide-react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { SkillFlipbook } from '@/components/flipbook/SkillFlipbook';
-import { SkillNode } from '@/lib/types';
-import { Input } from '@/components/ui/input';
+import { useState, useEffect, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { ArrowLeft, Sparkles, Loader2 } from 'lucide-react'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { SkillFlipbook } from '@/components/flipbook/SkillFlipbook'
+import { SkillPathOverview } from '@/components/flipbook/SkillPathOverview'
+import { SkillNode } from '@/lib/types'
+import { Input } from '@/components/ui/input'
 
-const SAMPLE_SKILLS: SkillNode[] = [
+const FALLBACK_SKILLS: SkillNode[] = [
   {
     id: '1',
     name: 'HTML/CSS 基础',
@@ -38,13 +40,13 @@ const SAMPLE_SKILLS: SkillNode[] = [
     description: '深入理解 JavaScript 语言核心概念，包括变量、函数、原型链、异步编程等',
     asciiArt: `
       ┌─────────────────┐
-      │    /\\    /\\     │
-      │   /  \\  /  \\    │
-      │  /    \\/    \\   │
+      │    /\    /\     │
+      │   /  \  /  \    │
+      │  /    \/    \   │
       │ <   JS Core   > │
-      │  \\    /\\    /   │
-      │   \\  /  \\  /    │
-      │    \\/    \\/     │
+      │  \    /\    /   │
+      │   \  /  \  /    │
+      │    \/    \/     │
       └─────────────────┘
     `,
     level: 'intermediate',
@@ -129,32 +131,62 @@ const SAMPLE_SKILLS: SkillNode[] = [
     ],
     status: 'locked',
   },
-];
+]
 
-export default function PathPage() {
-  const [currentIndex, setCurrentIndex] = useState(1);
-  const [skills, setSkills] = useState<SkillNode[]>(SAMPLE_SKILLS);
-  const [loading, setLoading] = useState(false);
-  const [resumeInput, setResumeInput] = useState('');
-  const [targetJobInput, setTargetJobInput] = useState('');
-  const [pathTitle, setPathTitle] = useState('React 前端进阶路径');
+function PathPageContent() {
+  const searchParams = useSearchParams()
+  const jobId = searchParams.get('jobId')
+
+  const [currentIndex, setCurrentIndex] = useState(1)
+  const [skills, setSkills] = useState<SkillNode[]>(FALLBACK_SKILLS)
+  const [loading, setLoading] = useState(false)
+  const [pageLoading, setPageLoading] = useState(!!jobId)
+  const [resumeInput, setResumeInput] = useState('')
+  const [targetJobInput, setTargetJobInput] = useState('')
+  const [pathTitle, setPathTitle] = useState('React 前端进阶路径')
+
+  useEffect(() => {
+    if (jobId) {
+      fetchPath(jobId)
+    }
+  }, [jobId])
+
+  const fetchPath = async (id: string) => {
+    setPageLoading(true)
+    try {
+      const res = await fetch(`/api/path/${id}`)
+      const data = await res.json()
+      if (data.success && data.data) {
+        const pathData = data.data
+        setPathTitle(`技能路径 - 岗位 ${id}`)
+        setSkills(pathData.skillNodes)
+        setCurrentIndex(
+          pathData.skillNodes.findIndex((n: SkillNode) => n.status === 'current') || 1
+        )
+      }
+    } catch (e) {
+      console.error('[获取路径失败]', e)
+    } finally {
+      setPageLoading(false)
+    }
+  }
 
   const handleGenerate = async () => {
-    if (!resumeInput || !targetJobInput) return;
-    setLoading(true);
+    if (!resumeInput || !targetJobInput) return
+    setLoading(true)
     try {
       const res = await fetch('/api/path/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           resume: resumeInput,
-          targetJob: targetJobInput
-        })
-      });
-      const data = await res.json();
-      const pathData = data.path || data.fallback;
+          targetJob: targetJobInput,
+        }),
+      })
+      const data = await res.json()
+      const pathData = data.path || data.fallback
 
-      setPathTitle(pathData.title);
+      setPathTitle(pathData.title)
       const newSkills = pathData.nodes.map((node: any, idx: number) => ({
         id: String(idx + 1),
         name: node.title,
@@ -165,7 +197,7 @@ export default function PathPage() {
           id: `r${i}`,
           title: r,
           url: '#',
-          type: 'course'
+          type: 'course',
         })),
         status: idx === 1 ? 'current' : idx < 1 ? 'completed' : 'locked',
         asciiArt: `
@@ -174,24 +206,35 @@ export default function PathPage() {
         │  ${node.title.slice(0, 12)}  │
         │  ════════════  │
         └─────────────────┘
-        `
-      }));
-      setSkills(newSkills);
-      setCurrentIndex(1);
+        `,
+      }))
+      setSkills(newSkills)
+      setCurrentIndex(1)
     } catch (e) {
-      console.error(e);
+      console.error(e)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowLeft') {
-      setCurrentIndex((prev) => Math.max(0, prev - 1));
+      setCurrentIndex((prev) => Math.max(0, prev - 1))
     } else if (e.key === 'ArrowRight') {
-      setCurrentIndex((prev) => Math.min(skills.length - 1, prev + 1));
+      setCurrentIndex((prev) => Math.min(skills.length - 1, prev + 1))
     }
-  };
+  }
+
+  if (pageLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 py-12 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+          <p className="text-gray-600">加载技能路径中...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div
@@ -245,6 +288,12 @@ export default function PathPage() {
           </Button>
         </div>
 
+        <SkillPathOverview
+          skills={skills}
+          currentIndex={currentIndex}
+          onIndexChange={setCurrentIndex}
+        />
+
         <SkillFlipbook
           skills={skills}
           currentIndex={currentIndex}
@@ -258,7 +307,7 @@ export default function PathPage() {
               <span className="font-medium">已完成</span>
             </div>
             <div className="text-2xl font-bold text-green-600">
-              {skills.filter(s => s.status === 'completed').length}
+              {skills.filter((s) => s.status === 'completed').length}
             </div>
             <div className="text-sm text-gray-500">个技能</div>
           </div>
@@ -269,7 +318,7 @@ export default function PathPage() {
               <span className="font-medium">进行中</span>
             </div>
             <div className="text-2xl font-bold text-yellow-600">
-              {skills.filter(s => s.status === 'current').length}
+              {skills.filter((s) => s.status === 'current').length}
             </div>
             <div className="text-sm text-gray-500">个技能</div>
           </div>
@@ -280,7 +329,7 @@ export default function PathPage() {
               <span className="font-medium">待解锁</span>
             </div>
             <div className="text-2xl font-bold text-gray-600">
-              {skills.filter(s => s.status === 'locked').length}
+              {skills.filter((s) => s.status === 'locked').length}
             </div>
             <div className="text-sm text-gray-500">个技能</div>
           </div>
@@ -297,5 +346,22 @@ export default function PathPage() {
         </div>
       </div>
     </div>
-  );
+  )
+}
+
+export default function PathPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50 py-12 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+            <p className="text-gray-600">加载中...</p>
+          </div>
+        </div>
+      }
+    >
+      <PathPageContent />
+    </Suspense>
+  )
 }

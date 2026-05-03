@@ -1,18 +1,25 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FlipCard } from './FlipCard';
-import { ProgressIndicator } from './ProgressIndicator';
-import { NavigationControls } from './NavigationControls';
-import { AsciiHeader } from './AsciiHeader';
-import { SkillNode } from '@/lib/types';
-import { ExternalLink } from 'lucide-react';
+import { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { FlipCard } from './FlipCard'
+import { ProgressIndicator } from './ProgressIndicator'
+import { NavigationControls } from './NavigationControls'
+import { AsciiHeader } from './AsciiHeader'
+import { SkillNode } from '@/lib/types'
+import { ExternalLink } from 'lucide-react'
+import { getLevelColor } from '@/lib/ascii-art'
+import {
+  getSkillStructureConfig,
+  generateSkillTree,
+  generateSkillConstellation,
+  generateProgressGauge,
+} from '@/lib/ascii-structure'
 
 interface SkillFlipbookProps {
-  skills: SkillNode[];
-  currentIndex: number;
-  onIndexChange: (index: number) => void;
+  skills: SkillNode[]
+  currentIndex: number
+  onIndexChange: (index: number) => void
 }
 
 export function SkillFlipbook({
@@ -20,22 +27,22 @@ export function SkillFlipbook({
   currentIndex,
   onIndexChange,
 }: SkillFlipbookProps) {
-  const [isFlipped, setIsFlipped] = useState(false);
-  const currentSkill = skills[currentIndex];
+  const [isFlipped, setIsFlipped] = useState(false)
+  const currentSkill = skills[currentIndex]
 
   const handlePrev = () => {
     if (currentIndex > 0) {
-      setIsFlipped(false);
-      onIndexChange(currentIndex - 1);
+      setIsFlipped(false)
+      onIndexChange(currentIndex - 1)
     }
-  };
+  }
 
   const handleNext = () => {
     if (currentIndex < skills.length - 1) {
-      setIsFlipped(false);
-      onIndexChange(currentIndex + 1);
+      setIsFlipped(false)
+      onIndexChange(currentIndex + 1)
     }
-  };
+  }
 
   return (
     <div className="w-full max-w-2xl mx-auto">
@@ -43,6 +50,10 @@ export function SkillFlipbook({
         <AsciiHeader
           skillName={currentSkill.name}
           asciiArt={currentSkill.asciiArt}
+          level={currentSkill.level}
+          fontIndex={currentIndex}
+          allSkills={skills}
+          currentIndex={currentIndex}
         />
 
         <div className="my-6">
@@ -55,7 +66,7 @@ export function SkillFlipbook({
               transition={{ duration: 0.3 }}
             >
               <FlipCard
-                front={<SkillCardFront skill={currentSkill} />}
+                front={<SkillCardFront skill={currentSkill} skills={skills} currentIndex={currentIndex} />}
                 back={<SkillCardBack skill={currentSkill} />}
                 isFlipped={isFlipped}
                 onFlip={() => setIsFlipped(!isFlipped)}
@@ -80,35 +91,123 @@ export function SkillFlipbook({
         </div>
       </div>
     </div>
-  );
+  )
 }
 
-function SkillCardFront({ skill }: { skill: SkillNode }) {
+function SkillCardFront({
+  skill,
+  skills,
+  currentIndex,
+}: {
+  skill: SkillNode
+  skills: SkillNode[]
+  currentIndex: number
+}) {
+  const [figletArt, setFigletArt] = useState<string>('')
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+
+    fetch('/api/ascii-art', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: skill.name, fontIndex: currentIndex }),
+    })
+      .then((res) => res.json())
+      .then((result) => {
+        if (!cancelled && result.success && result.data?.asciiArt) {
+          setFigletArt(result.data.asciiArt)
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setIsLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [skill.name, currentIndex])
+
+  const config = getSkillStructureConfig(skill.level)
+  const prerequisites = skills
+    .slice(0, currentIndex)
+    .map((s) => s.name)
+  const unlocks = skills
+    .slice(currentIndex + 1)
+    .slice(0, 2)
+    .map((s) => s.name)
+
+  let structureArt = ''
+  if (config.type === 'tree') {
+    structureArt = generateSkillTree(skill, prerequisites, unlocks)
+  } else if (config.type === 'constellation') {
+    const related = skills
+      .filter((_, i) => i !== currentIndex)
+      .map((s, i) => ({
+        name: s.name,
+        distance: Math.abs(
+          skills.findIndex((sk) => sk.id === s.id) - currentIndex
+        ),
+      }))
+    structureArt = generateSkillConstellation(skill, related.slice(0, 4))
+  }
+
   const levelColors = {
     beginner: 'bg-green-100 text-green-700',
     intermediate: 'bg-yellow-100 text-yellow-700',
     advanced: 'bg-red-100 text-red-700',
-  };
+  }
 
   const levelLabels = {
     beginner: '入门',
     intermediate: '进阶',
     advanced: '高级',
-  };
+  }
 
   const statusIcons = {
     locked: '🔒',
     current: '⭐',
     completed: '✅',
-  };
+  }
+
+  const asciiColorClass = getLevelColor(skill.level)
+  const progressGauge = generateProgressGauge(
+    skills.filter((s) => s.status === 'completed').length,
+    skills.length
+  )
 
   return (
-    <div className="h-full flex flex-col justify-center items-center text-center">
-      <div className="text-3xl mb-2">{statusIcons[skill.status]}</div>
-      <div className="text-2xl font-bold text-gray-900 mb-2">
-        {skill.name}
-      </div>
-      <div className="text-sm text-gray-500 mb-4">
+    <div className="h-full flex flex-col justify-center items-center text-center px-2">
+      <div className="text-3xl mb-1">{statusIcons[skill.status]}</div>
+      {isLoading ? (
+        <div className="animate-pulse font-mono text-xs text-gray-400">
+          Loading...
+        </div>
+      ) : figletArt ? (
+        <pre
+          className={`font-mono text-[7px] sm:text-[9px] leading-tight whitespace-pre ${asciiColorClass} mb-1 max-w-full overflow-x-auto`}
+        >
+          {figletArt}
+        </pre>
+      ) : (
+        <div className="text-xl font-bold text-gray-900 mb-1">
+          {skill.name}
+        </div>
+      )}
+
+      {structureArt && (
+        <pre className="font-mono text-[7px] sm:text-[9px] leading-tight whitespace-pre text-gray-900 mb-1 max-w-full overflow-x-auto">
+          {structureArt}
+        </pre>
+      )}
+
+      <pre className="font-mono text-[8px] sm:text-[10px] whitespace-pre text-gray-500 mb-2">
+        {progressGauge}
+      </pre>
+
+      <div className="text-xs text-gray-500 mb-2">
         预计学习时长: {skill.estimatedHours} 小时
       </div>
       <div className="flex gap-2">
@@ -117,9 +216,12 @@ function SkillCardFront({ skill }: { skill: SkillNode }) {
         >
           {levelLabels[skill.level]}
         </span>
+        <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+          {config.title}
+        </span>
       </div>
     </div>
-  );
+  )
 }
 
 function SkillCardBack({ skill }: { skill: SkillNode }) {
@@ -142,5 +244,5 @@ function SkillCardBack({ skill }: { skill: SkillNode }) {
         </ul>
       </div>
     </div>
-  );
+  )
 }

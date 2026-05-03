@@ -1,6 +1,5 @@
-import { NextResponse } from 'next/server';
 import { readData, writeData } from '@/lib/data';
-import { generateId } from '@/lib/utils';
+import { apiSuccess, apiError, generateId } from '@/lib/utils';
 import { Post } from '@/lib/types';
 
 export async function GET() {
@@ -9,14 +8,10 @@ export async function GET() {
     const sortedPosts = posts.sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
-    return NextResponse.json({
-      success: true,
-      total: posts.length,
-      posts: sortedPosts,
-    });
+    return apiSuccess({ total: posts.length, posts: sortedPosts });
   } catch (error) {
-    console.error('Posts fetch error:', error);
-    return NextResponse.json({ error: '获取帖子列表失败' }, { status: 500 });
+    console.error('[获取帖子列表失败]', error);
+    return apiError('COMMUNITY001', '获取帖子列表失败', 500);
   }
 }
 
@@ -25,7 +20,7 @@ export async function POST(request: Request) {
     const { userId, title, content, type, tags } = await request.json();
 
     if (!title || !content) {
-      return NextResponse.json({ error: '标题和内容不能为空' }, { status: 400 });
+      return apiError('COMMUNITY001', '标题和内容不能为空', 400);
     }
 
     const newPost: Post = {
@@ -43,15 +38,11 @@ export async function POST(request: Request) {
 
     const posts = readData<Post>('posts');
     posts.push(newPost);
-    writeData('posts', posts);
+    await writeData('posts', posts);
 
-    return NextResponse.json({
-      success: true,
-      postId: newPost.id,
-      post: newPost,
-    });
+    return apiSuccess({ postId: newPost.id, post: newPost });
   } catch (error) {
-    console.error('Post create error:', error);
-    return NextResponse.json({ error: '创建帖子失败' }, { status: 500 });
+    console.error('[创建帖子失败]', error);
+    return apiError('COMMUNITY001', '创建帖子失败', 500);
   }
 }

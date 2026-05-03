@@ -12,7 +12,7 @@ interface FlipCardProps {
 export function FlipCard({ front, back, isFlipped, onFlip }: FlipCardProps) {
   return (
     <div
-      className="perspective-1000 w-full h-80 cursor-pointer"
+      className="perspective-1000 w-full h-96 cursor-pointer"
       onClick={onFlip}
     >
       <div
@@ -23,7 +23,7 @@ export function FlipCard({ front, back, isFlipped, onFlip }: FlipCardProps) {
         style={{ transformStyle: 'preserve-3d' }}
       >
         <div
-          className="absolute w-full h-full rounded-xl bg-white border-2 border-blue-100 shadow-lg p-6 flex items-center justify-center"
+          className="absolute w-full h-full rounded-xl bg-white border-2 border-blue-100 shadow-lg p-6 flex items-center justify-center overflow-hidden"
           style={{ backfaceVisibility: 'hidden' }}
         >
           {front}

@@ -1,114 +1,97 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { ArrowLeft, Search, BookOpen, Clock, Star, ExternalLink, Play } from 'lucide-react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Course } from '@/lib/types';
+import { useState, useEffect } from 'react'
+import { ArrowLeft, Search, BookOpen, Clock, Star, ExternalLink, Play, Loader2 } from 'lucide-react'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { Course } from '@/lib/types'
 
-const COURSES: Course[] = [
-  {
-    id: '1',
-    title: 'React 官方教程',
-    platform: 'React 官网',
-    url: 'https://react.dev',
-    duration: '8 小时',
-    skills: ['React', 'Hooks', '组件'],
-    level: 'beginner',
-    description: '官方出品的 React 入门教程，从基础概念到实践项目',
-  },
-  {
-    id: '2',
-    title: 'TypeScript 进阶指南',
-    platform: '慕课网',
-    url: 'https://imooc.com',
-    duration: '15 小时',
-    skills: ['TypeScript', '类型系统'],
-    level: 'intermediate',
-    rating: 4.8,
-    description: '深入理解 TypeScript 类型系统，提升代码质量',
-  },
-  {
-    id: '3',
-    title: 'Node.js 全栈开发',
-    platform: '极客时间',
-    url: 'https://geekbang.com',
-    duration: '20 小时',
-    skills: ['Node.js', 'Express', 'API'],
-    level: 'intermediate',
-    rating: 4.7,
-    description: '从入门到实战，掌握后端开发能力',
-  },
-  {
-    id: '4',
-    title: 'CSS Grid & Flexbox',
-    platform: 'FreeCodeCamp',
-    url: 'https://freecodecamp.org',
-    duration: '6 小时',
-    skills: ['CSS', 'Grid', 'Flexbox'],
-    level: 'beginner',
-    description: '现代 CSS 布局技术，响应式设计必备',
-  },
-  {
-    id: '5',
-    title: '算法与数据结构',
-    platform: 'LeetCode',
-    url: 'https://leetcode.com',
-    duration: '30 小时',
-    skills: ['算法', '数据结构', '面试'],
-    level: 'advanced',
-    rating: 4.9,
-    description: '高频面试算法题精讲，提升编程能力',
-  },
-  {
-    id: '6',
-    title: 'Docker 容器化部署',
-    platform: 'Docker 官方',
-    url: 'https://docker.com',
-    duration: '10 小时',
-    skills: ['Docker', '容器', '部署'],
-    level: 'intermediate',
-    description: '云原生必备技能，容器化部署实战',
-  },
-];
+interface RecommendedCourse extends Course {
+  reason?: string
+}
 
 export default function LearningPage() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedLevel, setSelectedLevel] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedLevel, setSelectedLevel] = useState<string>('all')
+  const [courses, setCourses] = useState<Course[]>([])
+  const [recommendations, setRecommendations] = useState<RecommendedCourse[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const filteredCourses = COURSES.filter((course) => {
+  useEffect(() => {
+    fetchCourses()
+    fetchRecommendations()
+  }, [])
+
+  const fetchCourses = async () => {
+    try {
+      const res = await fetch('/api/learning/courses')
+      const data = await res.json()
+      if (data.success && data.data) {
+        setCourses(data.data)
+      }
+    } catch (e) {
+      console.error('[获取课程失败]', e)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchRecommendations = async () => {
+    try {
+      const res = await fetch('/api/learning/recommendations')
+      const data = await res.json()
+      if (data.success && data.data) {
+        setRecommendations(data.data)
+      }
+    } catch (e) {
+      console.error('[获取推荐失败]', e)
+    }
+  }
+
+  const filteredCourses = courses.filter((course) => {
     const matchesSearch =
       course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      course.skills.some((s) => s.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesLevel = selectedLevel === 'all' || course.level === selectedLevel;
-    return matchesSearch && matchesLevel;
-  });
+      course.skills.some((s) => s.toLowerCase().includes(searchTerm.toLowerCase()))
+    const matchesLevel = selectedLevel === 'all' || course.level === selectedLevel
+    return matchesSearch && matchesLevel
+  })
 
   const getLevelColor = (level: string) => {
     const colors: Record<string, string> = {
       beginner: 'bg-green-100 text-green-700',
       intermediate: 'bg-yellow-100 text-yellow-700',
       advanced: 'bg-red-100 text-red-700',
-    };
-    return colors[level] || 'bg-gray-100 text-gray-700';
-  };
+    }
+    return colors[level] || 'bg-gray-100 text-gray-700'
+  }
 
   const getLevelLabel = (level: string) => {
     const labels: Record<string, string> = {
       beginner: '入门',
       intermediate: '进阶',
       advanced: '高级',
-    };
-    return labels[level] || level;
-  };
+    }
+    return labels[level] || level
+  }
 
   const stats = {
-    totalCourses: COURSES.length,
-    totalHours: COURSES.reduce((sum, c) => parseInt(c.duration) + sum, 0),
-    beginnerCourses: COURSES.filter((c) => c.level === 'beginner').length,
-    intermediateCourses: COURSES.filter((c) => c.level === 'intermediate').length,
-    advancedCourses: COURSES.filter((c) => c.level === 'advanced').length,
-  };
+    totalCourses: courses.length,
+    totalHours: courses.reduce((sum, c) => parseInt(c.duration) + sum, 0),
+    beginnerCourses: courses.filter((c) => c.level === 'beginner').length,
+    intermediateCourses: courses.filter((c) => c.level === 'intermediate').length,
+    advancedCourses: courses.filter((c) => c.level === 'advanced').length,
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+          <p className="text-gray-600">加载课程中...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -272,6 +255,16 @@ export default function LearningPage() {
           <p className="text-blue-100 mb-6">
             完成简历分析后，我们将根据你的技能缺口和目标岗位，智能推荐最合适的学习路径。
           </p>
+          {recommendations.length > 0 && (
+            <div className="mb-6 space-y-2">
+              {recommendations.slice(0, 3).map((rec) => (
+                <div key={rec.id} className="bg-white/10 rounded-lg p-3 text-sm">
+                  <span className="font-medium">{rec.title}</span>
+                  {rec.reason && <span className="text-blue-100 ml-2">{rec.reason}</span>}
+                </div>
+              ))}
+            </div>
+          )}
           <div className="flex gap-4">
             <Link href="/resume">
               <Button className="bg-white text-blue-600 hover:bg-blue-50">
@@ -287,5 +280,5 @@ export default function LearningPage() {
         </div>
       </div>
     </div>
-  );
+  )
 }

@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import Link from 'next/link';
 import { Home, FileText, Target, BookOpen, Users, Trophy, GraduationCap } from 'lucide-react';
+import { ErrorBoundary } from '@/components/ui/error-boundary';
 
 export default function MainLayout({ children }: { children: ReactNode }) {
   const navItems = [
@@ -36,7 +37,9 @@ export default function MainLayout({ children }: { children: ReactNode }) {
           </div>
         </div>
       </nav>
-      {children}
+      <ErrorBoundary>
+        {children}
+      </ErrorBoundary>
     </div>
   );
 }

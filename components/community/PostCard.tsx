@@ -1,13 +1,21 @@
-import { MessageCircle, ThumbsUp } from 'lucide-react';
+import { useState } from 'react';
+import { MessageCircle, ThumbsUp, Send } from 'lucide-react';
 import { Post } from '@/lib/types';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { sanitizeHtml } from '@/lib/utils';
 
 interface PostCardProps {
   post: Post;
   onLike: () => void;
+  onComment: (content: string) => void;
   onClick?: () => void;
 }
 
-export function PostCard({ post, onLike, onClick }: PostCardProps) {
+export function PostCard({ post, onLike, onComment, onClick }: PostCardProps) {
+  const [showComments, setShowComments] = useState(false);
+  const [commentContent, setCommentContent] = useState('');
+
   const getTypeColor = (type: string) => {
     const colors: Record<string, string> = {
       share: 'bg-blue-100 text-blue-700',
@@ -28,9 +36,15 @@ export function PostCard({ post, onLike, onClick }: PostCardProps) {
     return labels[type] || type;
   };
 
+  const handleSubmitComment = () => {
+    if (!commentContent.trim()) return;
+    onComment(commentContent.trim());
+    setCommentContent('');
+  };
+
   return (
     <div
-      className="bg-white rounded-xl p-6 border hover:shadow-sm transition-shadow cursor-pointer"
+      className="bg-white rounded-xl p-6 border hover:shadow-sm transition-shadow"
       onClick={onClick}
     >
       <div className="flex items-center gap-3 mb-4">
@@ -50,8 +64,8 @@ export function PostCard({ post, onLike, onClick }: PostCardProps) {
         </div>
       </div>
 
-      <h3 className="text-lg font-semibold mb-2">{post.title}</h3>
-      <p className="text-gray-600 mb-4 line-clamp-3">{post.content}</p>
+      <h3 className="text-lg font-semibold mb-2">{sanitizeHtml(post.title)}</h3>
+      <p className="text-gray-600 mb-4 line-clamp-3">{sanitizeHtml(post.content)}</p>
 
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -65,10 +79,16 @@ export function PostCard({ post, onLike, onClick }: PostCardProps) {
             <ThumbsUp className="w-4 h-4" />
             <span>{post.likes}</span>
           </button>
-          <div className="flex items-center gap-1 text-gray-500">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowComments(!showComments);
+            }}
+            className="flex items-center gap-1 text-gray-500 hover:text-blue-600 transition-colors"
+          >
             <MessageCircle className="w-4 h-4" />
             <span>{post.comments.length}</span>
-          </div>
+          </button>
         </div>
         <div className="flex gap-2">
           {post.tags.slice(0, 3).map((tag) => (
@@ -76,11 +96,54 @@ export function PostCard({ post, onLike, onClick }: PostCardProps) {
               key={tag}
               className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs"
             >
-              #{tag}
+              #{sanitizeHtml(tag)}
             </span>
           ))}
         </div>
       </div>
+
+      {showComments && (
+        <div className="mt-4 pt-4 border-t">
+          <div className="space-y-3 mb-4">
+            {post.comments.map((comment) => (
+              <div key={comment.id} className="flex items-start gap-2">
+                <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs text-gray-600">
+                  {comment.userId.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1 bg-gray-50 rounded-lg p-2">
+                  <div className="text-xs text-gray-500 mb-1">
+                    用户 {comment.userId.slice(0, 6)}
+                  </div>
+                  <div className="text-sm text-gray-700">{sanitizeHtml(comment.content)}</div>
+                </div>
+              </div>
+            ))}
+            {post.comments.length === 0 && (
+              <div className="text-sm text-gray-400 text-center py-2">
+                暂无评论，快来抢沙发吧
+              </div>
+            )}
+          </div>
+          <div className="flex gap-2">
+            <Input
+              placeholder="写下你的评论..."
+              value={commentContent}
+              onChange={(e) => setCommentContent(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleSubmitComment();
+              }}
+              className="flex-1"
+            />
+            <Button
+              size="sm"
+              onClick={handleSubmitComment}
+              disabled={!commentContent.trim()}
+            >
+              <Send className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

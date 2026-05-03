@@ -119,6 +119,17 @@ export interface Course {
   description: string;
 }
 
+export interface AchievementCondition {
+  type: 'register' | 'analyze_resume' | 'confirm_target' | 'complete_skill' | 'post_liked' | 'multiple_matches';
+  count: number;
+}
+
+export interface UserAchievement {
+  userId: string;
+  achievementId: string;
+  unlockedAt: string;
+}
+
 export interface Achievement {
   id: string;
   name: string;
@@ -126,7 +137,7 @@ export interface Achievement {
   icon: string;
   category: 'beginner' | 'resume' | 'target' | 'learning' | 'community' | 'master';
   points: number;
-  condition: string;
+  condition: AchievementCondition;
 }
 
 export interface Post {
@@ -148,3 +159,31 @@ export interface Comment {
   content: string;
   createdAt: string;
 }
+
+export interface ApiResponse<T> {
+  success: boolean;
+  data?: T;
+  error?: ApiError;
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+  };
+}
+
+export interface ApiError {
+  code: string;
+  message: string;
+}
+
+export type ErrorCode =
+  | 'AUTH001'
+  | 'AUTH002'
+  | 'RESUME001'
+  | 'RESUME002'
+  | 'JOB001'
+  | 'JOB002'
+  | 'PATH001'
+  | 'LEARNING001'
+  | 'COMMUNITY001'
+  | 'ACHIEVEMENT001';
