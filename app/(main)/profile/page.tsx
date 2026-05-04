@@ -24,6 +24,10 @@ export default function ProfilePage() {
     }
     if (status === 'authenticated' && session?.user?.id) {
       fetchAllData(session.user.id)
+    } else if (status === 'authenticated' && !session?.user?.id) {
+      // 等待 session 加载完成
+    } else if (status !== 'loading') {
+      setLoading(false)
     }
   }, [status, session])
 
@@ -53,16 +57,20 @@ export default function ProfilePage() {
   const handleExport = async (format: 'text' | 'markdown') => {
     const userId = session?.user?.id
     if (!userId) return
-    const res = await fetch(`/api/profile/export?userId=${userId}&format=${format}`)
-    const data = await res.json()
-    if (data.success && data.data?.content) {
-      const blob = new Blob([data.data.content], { type: 'text/plain;charset=utf-8' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `careerpath-data-${new Date().toISOString().slice(0, 10)}.${format === 'markdown' ? 'md' : 'txt'}`
-      a.click()
-      URL.revokeObjectURL(url)
+    try {
+      const res = await fetch(`/api/profile/export?userId=${userId}&format=${format}`)
+      const data = await res.json()
+      if (data.success && data.data?.content) {
+        const blob = new Blob([data.data.content], { type: 'text/plain;charset=utf-8' })
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `careerpath-data-${new Date().toISOString().slice(0, 10)}.${format === 'markdown' ? 'md' : 'txt'}`
+        a.click()
+        URL.revokeObjectURL(url)
+      }
+    } catch (e) {
+      console.error('[导出失败]', e)
     }
   }
 
@@ -70,24 +78,43 @@ export default function ProfilePage() {
     if (!confirm('确定要注销账号吗？此操作不可撤销，所有数据将被删除。')) return
     const userId = session?.user?.id
     if (!userId) return
-    const res = await fetch('/api/profile/delete-account', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId }),
-    })
-    const data = await res.json()
-    if (data.success) {
-      signOut({ callbackUrl: '/' })
+    try {
+      const res = await fetch('/api/profile/delete-account', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        signOut({ callbackUrl: '/' })
+      }
+    } catch (e) {
+      console.error('[注销失败]', e)
     }
   }
 
-  if (status === 'loading' || loading) {
+  if (status === 'loading') {
     return (
       <div className="min-h-screen bg-gray-50 py-12 flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
       </div>
     )
   }
+
+  if (status === 'unauthenticated') {
+    return (
+      <div className="min-h-screen bg-gray-50 py-12 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600 mb-4">请先登录</p>
+          <Button onClick={() => router.push('/login')}>去登录</Button>
+        </div>
+      </div>
+    )
+  }
+
+  const userName = session?.user?.name || session?.user?.email?.split('@')[0] || '用户'
+  const userEmail = session?.user?.email || ''
+  const userId = session?.user?.id
 
   const unlockedCount = achievements.filter((a) => a.unlocked).length
   const totalPoints = achievements
@@ -99,14 +126,14 @@ export default function ProfilePage() {
       <div className="max-w-4xl mx-auto px-4">
         {/* 用户信息卡片 */}
         <div className="bg-white rounded-2xl p-8 border shadow-sm mb-8">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-2xl font-bold">
-                {session?.user?.name?.[0] || 'U'}
+                {userName[0].toUpperCase()}
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">{session?.user?.name || '用户'}</h1>
-                <p className="text-gray-500">{session?.user?.email}</p>
+                <h1 className="text-2xl font-bold text-gray-900">{userName}</h1>
+                <p className="text-gray-500">{userEmail}</p>
                 <div className="flex items-center gap-2 mt-1">
                   <Star className="w-4 h-4 text-yellow-500" />
                   <span className="text-sm font-medium text-yellow-600">{totalPoints} XP</span>
@@ -127,7 +154,7 @@ export default function ProfilePage() {
         </div>
 
         {/* Tab 切换 */}
-        <div className="flex gap-2 mb-6">
+        <div className="flex gap-2 mb-6 flex-wrap">
           {[
             { key: 'achievements', label: '成就', icon: Trophy },
             { key: 'resumes', label: '简历分析历史', icon: FileText },
@@ -151,24 +178,28 @@ export default function ProfilePage() {
         {/* 成就内容 */}
         {activeTab === 'achievements' && (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {achievements.map((achievement) => {
-              const isUnlocked = achievement.unlocked
-              return (
-                <div
-                  key={achievement.id}
-                  className={`bg-white rounded-xl p-6 border text-center transition-all ${
-                    isUnlocked ? 'border-yellow-300 shadow-lg' : 'opacity-60'
-                  }`}
-                >
-                  <div className={`w-14 h-14 mx-auto rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-2xl mb-3 ${isUnlocked ? '' : 'grayscale'}`}>
-                    {isUnlocked ? achievement.icon : <Lock className="w-5 h-5 text-gray-400" />}
+            {achievements.length === 0 ? (
+              <div className="col-span-full text-center py-12 text-gray-500">暂无成就数据</div>
+            ) : (
+              achievements.map((achievement) => {
+                const isUnlocked = achievement.unlocked
+                return (
+                  <div
+                    key={achievement.id}
+                    className={`bg-white rounded-xl p-6 border text-center transition-all ${
+                      isUnlocked ? 'border-yellow-300 shadow-lg' : 'opacity-60'
+                    }`}
+                  >
+                    <div className={`w-14 h-14 mx-auto rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-2xl mb-3 ${isUnlocked ? '' : 'grayscale'}`}>
+                      {isUnlocked ? achievement.icon : <Lock className="w-5 h-5 text-gray-400" />}
+                    </div>
+                    <div className="font-semibold text-gray-900 mb-1">{achievement.name}</div>
+                    <div className="text-xs text-gray-500 mb-2">{achievement.description}</div>
+                    <div className="text-xs text-yellow-600 font-medium">{achievement.points} XP</div>
                   </div>
-                  <div className="font-semibold text-gray-900 mb-1">{achievement.name}</div>
-                  <div className="text-xs text-gray-500 mb-2">{achievement.description}</div>
-                  <div className="text-xs text-yellow-600 font-medium">{achievement.points} XP</div>
-                </div>
-              )
-            })}
+                )
+              })
+            )}
           </div>
         )}
 

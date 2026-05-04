@@ -137,13 +137,13 @@ function PathPageContent() {
   const searchParams = useSearchParams()
   const jobId = searchParams.get('jobId')
 
-  const [currentIndex, setCurrentIndex] = useState(1)
-  const [skills, setSkills] = useState<SkillNode[]>(FALLBACK_SKILLS)
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [skills, setSkills] = useState<SkillNode[]>([])
   const [loading, setLoading] = useState(false)
   const [pageLoading, setPageLoading] = useState(!!jobId)
   const [resumeInput, setResumeInput] = useState('')
   const [targetJobInput, setTargetJobInput] = useState('')
-  const [pathTitle, setPathTitle] = useState('React 前端进阶路径')
+  const [pathTitle, setPathTitle] = useState('')
 
   useEffect(() => {
     if (jobId) {
@@ -251,8 +251,10 @@ function PathPageContent() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">{pathTitle}</h1>
-            <p className="text-gray-600">个性化技能学习路径，由 DeepSeek 智能生成</p>
+            <h1 className="text-3xl font-bold text-gray-900">{pathTitle || '技能路径规划'}</h1>
+            <p className="text-gray-600">
+              {pathTitle ? '个性化技能学习路径，由 DeepSeek 智能生成' : '输入你的简历和目标岗位，AI 将为你生成个性化学习路径'}
+            </p>
           </div>
         </div>
 
@@ -289,52 +291,56 @@ function PathPageContent() {
           </Button>
         </div>
 
-        <SkillPathOverview
-          skills={skills}
-          currentIndex={currentIndex}
-          onIndexChange={setCurrentIndex}
-        />
+        {skills.length > 0 && (
+          <>
+            <SkillPathOverview
+              skills={skills}
+              currentIndex={currentIndex}
+              onIndexChange={setCurrentIndex}
+            />
 
-        <SkillFlipbook
-          skills={skills}
-          currentIndex={currentIndex}
-          onIndexChange={setCurrentIndex}
-        />
+            <SkillFlipbook
+              skills={skills}
+              currentIndex={currentIndex}
+              onIndexChange={setCurrentIndex}
+            />
 
-        <div className="mt-8 grid md:grid-cols-3 gap-4">
-          <div className="bg-white rounded-xl p-4 border">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-green-500">✅</span>
-              <span className="font-medium">已完成</span>
-            </div>
-            <div className="text-2xl font-bold text-green-600">
-              {skills.filter((s) => s.status === 'completed').length}
-            </div>
-            <div className="text-sm text-gray-500">个技能</div>
-          </div>
+            <div className="mt-8 grid md:grid-cols-3 gap-4">
+              <div className="bg-white rounded-xl p-4 border">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-green-500">✅</span>
+                  <span className="font-medium">已完成</span>
+                </div>
+                <div className="text-2xl font-bold text-green-600">
+                  {skills.filter((s) => s.status === 'completed').length}
+                </div>
+                <div className="text-sm text-gray-500">个技能</div>
+              </div>
 
-          <div className="bg-white rounded-xl p-4 border">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-yellow-500">⭐</span>
-              <span className="font-medium">进行中</span>
-            </div>
-            <div className="text-2xl font-bold text-yellow-600">
-              {skills.filter((s) => s.status === 'current').length}
-            </div>
-            <div className="text-sm text-gray-500">个技能</div>
-          </div>
+              <div className="bg-white rounded-xl p-4 border">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-yellow-500">⭐</span>
+                  <span className="font-medium">进行中</span>
+                </div>
+                <div className="text-2xl font-bold text-yellow-600">
+                  {skills.filter((s) => s.status === 'current').length}
+                </div>
+                <div className="text-sm text-gray-500">个技能</div>
+              </div>
 
-          <div className="bg-white rounded-xl p-4 border">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-gray-400">🔒</span>
-              <span className="font-medium">待解锁</span>
+              <div className="bg-white rounded-xl p-4 border">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-gray-400">🔒</span>
+                  <span className="font-medium">待解锁</span>
+                </div>
+                <div className="text-2xl font-bold text-gray-600">
+                  {skills.filter((s) => s.status === 'locked').length}
+                </div>
+                <div className="text-sm text-gray-500">个技能</div>
+              </div>
             </div>
-            <div className="text-2xl font-bold text-gray-600">
-              {skills.filter((s) => s.status === 'locked').length}
-            </div>
-            <div className="text-sm text-gray-500">个技能</div>
-          </div>
-        </div>
+          </>
+        )}
 
         <div className="mt-8 bg-white rounded-xl p-6 border">
           <h2 className="text-lg font-semibold mb-4">学习建议</h2>

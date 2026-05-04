@@ -104,10 +104,12 @@ export default function CommunityPage() {
             <h1 className="text-3xl font-bold text-gray-900">社区</h1>
             <p className="text-gray-600">与志同道合的朋友交流</p>
           </div>
-          <Button>
-            <Plus className="w-4 h-4 mr-2" />
-            发布帖子
-          </Button>
+          <Link href="/community/create">
+            <Button>
+              <Plus className="w-4 h-4 mr-2" />
+              发布帖子
+            </Button>
+          </Link>
         </div>
 
         <div className="bg-white rounded-xl p-4 border mb-6">
