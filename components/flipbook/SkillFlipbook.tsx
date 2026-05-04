@@ -172,7 +172,7 @@ function SkillCardFront({
     completed: '✅',
   }
 
-  const asciiColorClass = getLevelColor(skill.level)
+  const asciiColorClass = getLevelColor(skill.level, false)
   const progressGauge = generateProgressGauge(
     skills.filter((s) => s.status === 'completed').length,
     skills.length
@@ -198,7 +198,7 @@ function SkillCardFront({
       )}
 
       {structureArt && (
-        <pre className="font-mono text-[7px] sm:text-[9px] leading-tight whitespace-pre text-gray-900 mb-1 max-w-full overflow-x-auto">
+        <pre className="font-mono text-[7px] sm:text-[9px] leading-tight whitespace-pre text-gray-800 bg-gray-50 rounded-lg p-3 border border-gray-200 mb-1 max-w-full overflow-x-auto">
           {structureArt}
         </pre>
       )}

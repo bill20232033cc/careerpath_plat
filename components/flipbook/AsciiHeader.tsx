@@ -69,7 +69,7 @@ export function AsciiHeader({
     }
   }, [skillName, asciiArt, fontIndex, allSkills, currentIndex])
 
-  const colorClass = getLevelColor(level)
+  const colorClass = getLevelColor(level, false)
 
   const progressGauge = allSkills && currentIndex !== undefined
     ? generateProgressGauge(
@@ -91,12 +91,12 @@ export function AsciiHeader({
   return (
     <div className="text-center">
       <pre
-        className={`font-mono text-[8px] sm:text-[10px] leading-tight whitespace-pre bg-gray-900 rounded-lg p-4 border border-gray-700 overflow-x-auto ${colorClass}`}
+        className={`font-mono text-[8px] sm:text-[10px] leading-tight whitespace-pre bg-gray-50 rounded-lg p-4 border border-gray-200 overflow-x-auto ${colorClass}`}
       >
         {generatedArt}
       </pre>
       {progressGauge && (
-        <pre className="font-mono text-[9px] sm:text-[11px] whitespace-pre text-gray-500 mt-2">
+        <pre className="font-mono text-[9px] sm:text-[11px] whitespace-pre text-gray-600 mt-2">
           {progressGauge}
         </pre>
       )}
