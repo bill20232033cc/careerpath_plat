@@ -184,7 +184,14 @@ function PathPageContent() {
         }),
       })
       const data = await res.json()
-      const pathData = data.path || data.fallback
+
+      if (!data.success || !data.data || !data.data.path) {
+        console.error('[路径生成失败]', data)
+        return
+      }
+
+      const pathData = data.data.path
+      const poweredBy = data.data.poweredBy || 'DeepSeek'
 
       setPathTitle(pathData.title)
       const newSkills = pathData.nodes.map((node: any, idx: number) => ({
@@ -200,18 +207,12 @@ function PathPageContent() {
           type: 'course',
         })),
         status: idx === 1 ? 'current' : idx < 1 ? 'completed' : 'locked',
-        asciiArt: `
-        ┌─────────────────┐
-        │  ════════════  │
-        │  ${node.title.slice(0, 12)}  │
-        │  ════════════  │
-        └─────────────────┘
-        `,
+        asciiArt: '',
       }))
       setSkills(newSkills)
-      setCurrentIndex(1)
+      setCurrentIndex(0)
     } catch (e) {
-      console.error(e)
+      console.error('[路径生成异常]', e)
     } finally {
       setLoading(false)
     }
