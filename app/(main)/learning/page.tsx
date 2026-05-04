@@ -10,16 +10,29 @@ interface RecommendedCourse extends Course {
   reason?: string
 }
 
+interface LearningProgressItem {
+  courseId: string
+  progress: number
+  updatedAt: string
+}
+
 export default function LearningPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedLevel, setSelectedLevel] = useState<string>('all')
   const [courses, setCourses] = useState<Course[]>([])
   const [recommendations, setRecommendations] = useState<RecommendedCourse[]>([])
+  const [progresses, setProgresses] = useState<Record<string, LearningProgressItem>>({})
   const [loading, setLoading] = useState(true)
+  const [userId, setUserId] = useState<string>('')
 
   useEffect(() => {
+    const storedUserId = localStorage.getItem('userId') || ''
+    setUserId(storedUserId)
     fetchCourses()
     fetchRecommendations()
+    if (storedUserId) {
+      fetchProgresses(storedUserId)
+    }
   }, [])
 
   const fetchCourses = async () => {
@@ -45,6 +58,45 @@ export default function LearningPage() {
       }
     } catch (e) {
       console.error('[获取推荐失败]', e)
+    }
+  }
+
+  const fetchProgresses = async (uid: string) => {
+    try {
+      const res = await fetch(`/api/learning/progress?userId=${uid}`)
+      const data = await res.json()
+      if (data.success && data.data) {
+        const progressMap: Record<string, LearningProgressItem> = {}
+        data.data.forEach((p: LearningProgressItem) => {
+          progressMap[p.courseId] = p
+        })
+        setProgresses(progressMap)
+      }
+    } catch (e) {
+      console.error('[获取学习进度失败]', e)
+    }
+  }
+
+  const updateProgress = async (courseId: string) => {
+    if (!userId) return
+    try {
+      const currentProgress = progresses[courseId]?.progress || 0
+      const newProgress = Math.min(currentProgress + 10, 100)
+
+      const res = await fetch('/api/learning/progress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, courseId, progress: newProgress }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setProgresses((prev) => ({
+          ...prev,
+          [courseId]: { courseId, progress: newProgress, updatedAt: new Date().toISOString() },
+        }))
+      }
+    } catch (e) {
+      console.error('[更新学习进度失败]', e)
     }
   }
 
@@ -175,71 +227,88 @@ export default function LearningPage() {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCourses.map((course) => (
-            <div
-              key={course.id}
-              className="bg-white rounded-xl border overflow-hidden hover:shadow-lg transition-shadow"
-            >
-              <div className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <span
-                      className={`px-2 py-1 rounded text-xs font-medium ${getLevelColor(
-                        course.level
-                      )}`}
-                    >
-                      {getLevelLabel(course.level)}
-                    </span>
+          {filteredCourses.map((course) => {
+            const progress = progresses[course.id]?.progress || 0
+            return (
+              <div
+                key={course.id}
+                className="bg-white rounded-xl border overflow-hidden hover:shadow-lg transition-shadow"
+              >
+                <div className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <span
+                        className={`px-2 py-1 rounded text-xs font-medium ${getLevelColor(
+                          course.level
+                        )}`}
+                      >
+                        {getLevelLabel(course.level)}
+                      </span>
+                    </div>
+                    {course.rating && (
+                      <div className="flex items-center gap-1 text-yellow-500">
+                        <Star className="w-4 h-4 fill-current" />
+                        <span className="text-sm font-medium">{course.rating}</span>
+                      </div>
+                    )}
                   </div>
-                  {course.rating && (
-                    <div className="flex items-center gap-1 text-yellow-500">
-                      <Star className="w-4 h-4 fill-current" />
-                      <span className="text-sm font-medium">{course.rating}</span>
+
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    {course.title}
+                  </h3>
+                  <p className="text-sm text-gray-500 mb-4">{course.platform}</p>
+                  <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                    {course.description}
+                  </p>
+
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {course.skills.map((skill) => (
+                      <span
+                        key={skill}
+                        className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs"
+                      >
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-4 h-4" />
+                      <span>{course.duration}</span>
+                    </div>
+                    {progress > 0 && (
+                      <span className="text-blue-600 font-medium">{progress}%</span>
+                    )}
+                  </div>
+
+                  {/* 学习进度条 */}
+                  {progress > 0 && (
+                    <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
+                      <div
+                        className="bg-blue-600 h-2 rounded-full transition-all"
+                        style={{ width: `${progress}%` }}
+                      />
                     </div>
                   )}
+
+                  <a
+                    href={course.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block"
+                    onClick={() => updateProgress(course.id)}
+                  >
+                    <Button className="w-full gap-2">
+                      <Play className="w-4 h-4" />
+                      {progress > 0 ? '继续学习' : '开始学习'}
+                      <ExternalLink className="w-4 h-4" />
+                    </Button>
+                  </a>
                 </div>
-
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  {course.title}
-                </h3>
-                <p className="text-sm text-gray-500 mb-4">{course.platform}</p>
-                <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                  {course.description}
-                </p>
-
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {course.skills.map((skill) => (
-                    <span
-                      key={skill}
-                      className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs"
-                    >
-                      {skill}
-                    </span>
-                  ))}
-                </div>
-
-                <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-4 h-4" />
-                    <span>{course.duration}</span>
-                  </div>
-                </div>
-
-                <a
-                  href={course.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block"
-                >
-                  <Button className="w-full gap-2">
-                    <Play className="w-4 h-4" />
-                    开始学习
-                    <ExternalLink className="w-4 h-4" />
-                  </Button>
-                </a>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
 
         {filteredCourses.length === 0 && (

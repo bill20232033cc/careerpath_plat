@@ -1,9 +1,13 @@
+'use client';
+
 import { useState } from 'react';
 import { MessageCircle, ThumbsUp, Send } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { Post } from '@/lib/types';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { sanitizeHtml } from '@/lib/utils';
 
 interface PostCardProps {
   post: Post;
@@ -64,8 +68,40 @@ export function PostCard({ post, onLike, onComment, onClick }: PostCardProps) {
         </div>
       </div>
 
-      <h3 className="text-lg font-semibold mb-2">{sanitizeHtml(post.title)}</h3>
-      <p className="text-gray-600 mb-4 line-clamp-3">{sanitizeHtml(post.content)}</p>
+      <h3 className="text-lg font-semibold mb-2">{post.title}</h3>
+
+      {/* Markdown 内容渲染 */}
+      <div className="text-gray-600 mb-4 prose prose-sm max-w-none">
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          components={{
+            code({ className, children, ...props }: any) {
+              const match = /language-(\w+)/.exec(className || '');
+              return match ? (
+                <SyntaxHighlighter language={match[1]} PreTag="div">
+                  {String(children).replace(/\n$/, '')}
+                </SyntaxHighlighter>
+              ) : (
+                <code className={className} {...props}>
+                  {children}
+                </code>
+              );
+            },
+            img({ src, alt }) {
+              return (
+                <img
+                  src={src}
+                  alt={alt}
+                  className="max-w-full rounded-lg my-2"
+                  loading="lazy"
+                />
+              );
+            },
+          }}
+        >
+          {post.content}
+        </ReactMarkdown>
+      </div>
 
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -96,7 +132,7 @@ export function PostCard({ post, onLike, onComment, onClick }: PostCardProps) {
               key={tag}
               className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs"
             >
-              #{sanitizeHtml(tag)}
+              #{tag}
             </span>
           ))}
         </div>
@@ -114,7 +150,7 @@ export function PostCard({ post, onLike, onComment, onClick }: PostCardProps) {
                   <div className="text-xs text-gray-500 mb-1">
                     用户 {comment.userId.slice(0, 6)}
                   </div>
-                  <div className="text-sm text-gray-700">{sanitizeHtml(comment.content)}</div>
+                  <div className="text-sm text-gray-700">{comment.content}</div>
                 </div>
               </div>
             ))}
