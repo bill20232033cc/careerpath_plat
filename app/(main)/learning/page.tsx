@@ -341,7 +341,7 @@ export default function LearningPage() {
               </Button>
             </Link>
             <Link href="/path">
-              <Button variant="outline" className="text-white border-white hover:bg-white/10">
+              <Button className="bg-white text-blue-600 hover:bg-blue-50">
                 查看技能路径
               </Button>
             </Link>
