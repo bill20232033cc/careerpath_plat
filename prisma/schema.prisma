@@ -23,6 +23,8 @@ model User {
   learningProgress LearningProgress[]
   posts        Post[]
   resumes      Resume[]
+  resumeAnalysisHistories ResumeAnalysisHistory[]
+  pathGenerationHistories PathGenerationHistory[]
 }
 
 model Resume {
@@ -161,4 +163,29 @@ model Resource {
   title  String
   url    String
   type   String
+}
+
+model ResumeAnalysisHistory {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  originalText String
+  analysisReport String?
+  createdAt    DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model PathGenerationHistory {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resume      String
+  targetJob   String
+  pathTitle   String
+  nodes       String
+  poweredBy   String   @default("DeepSeek")
+  createdAt   DateTime @default(now())
+
+  @@index([userId, createdAt])
 }

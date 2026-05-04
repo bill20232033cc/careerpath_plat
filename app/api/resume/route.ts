@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { callDeepSeek } from '@/lib/deepseek';
 import { apiSuccess, apiError } from '@/lib/utils';
 import { validateResumeText } from '@/lib/validators';
+import { prisma } from '@/lib/prisma';
 
 const systemPrompt = `你是专业的职业规划顾问。请分析用户简历，返回 JSON 格式：
 
@@ -31,7 +32,8 @@ const fallback = {
 
 export async function POST(request: Request) {
   try {
-    const { text } = await request.json();
+    const body = await request.json();
+    const { text } = body;
 
     const validationError = validateResumeText(text);
     if (validationError) {
@@ -55,6 +57,14 @@ export async function POST(request: Request) {
     } catch {
       return apiSuccess({ analysis: fallback, poweredBy: 'DeepSeek (fallback)' });
     }
+
+    await prisma.resumeAnalysisHistory.create({
+      data: {
+        userId: body.userId || 'anonymous',
+        originalText: text,
+        analysisReport: JSON.stringify(analysis),
+      }
+    })
 
     return apiSuccess({ analysis, poweredBy: 'DeepSeek' });
   } catch (error) {

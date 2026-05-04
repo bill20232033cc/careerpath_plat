@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { callDeepSeek } from '@/lib/deepseek';
 import { apiSuccess, apiError } from '@/lib/utils';
+import { prisma } from '@/lib/prisma';
 
 const systemPrompt = `你是职业学习路径规划专家。根据用户简历和目标岗位，生成技能学习路径。
 
@@ -34,7 +35,8 @@ const fallbackPath = {
 
 export async function POST(request: Request) {
   try {
-    const { resume, targetJob } = await request.json();
+    const body = await request.json();
+    const { resume, targetJob } = body;
 
     let aiResponse: string | null = null;
     try {
@@ -54,7 +56,20 @@ export async function POST(request: Request) {
       return apiSuccess({ path: fallbackPath, poweredBy: 'DeepSeek (fallback)' });
     }
 
-    return apiSuccess({ path: pathData, poweredBy: 'DeepSeek' });
+    const poweredBy = 'DeepSeek'
+
+    await prisma.pathGenerationHistory.create({
+      data: {
+        userId: body.userId || 'anonymous',
+        resume: resume,
+        targetJob: targetJob,
+        pathTitle: pathData.title,
+        nodes: JSON.stringify(pathData.nodes),
+        poweredBy: poweredBy,
+      }
+    })
+
+    return apiSuccess({ path: pathData, poweredBy });
   } catch (error) {
     console.error('生成路径失败:', error);
     return apiError('PATH001', '生成路径失败', 500);

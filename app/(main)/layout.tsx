@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import Link from 'next/link';
-import { Home, FileText, Target, BookOpen, Users, Trophy, GraduationCap } from 'lucide-react';
+import { Home, FileText, Target, BookOpen, Users, GraduationCap, User } from 'lucide-react';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 
 export default function MainLayout({ children }: { children: ReactNode }) {
@@ -11,7 +11,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
     { href: '/learning', icon: GraduationCap, label: '学习' },
     { href: '/path', icon: BookOpen, label: '路径' },
     { href: '/community', icon: Users, label: '社区' },
-    { href: '/achievements', icon: Trophy, label: '成就' },
+    { href: '/profile', icon: User, label: '个人中心' },
   ];
 
   return (
